@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: my-test
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: postgresdb
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: test123
+---
+###Its not possile to read in a file directly. To do that run something like this beforehad
+# kubectl create configmap postgresql-initdb-config --from-file=create-1.sql --from-file=data-2.sql
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-initdb-config
+  namespace: my-test
+  labels:
+    app: postgres
+data:
+  create-1.sql : |
+    CREATE TABLE IF NOT EXISTS fruits (
+      fruit_name text,
+      description text
+    );
+  data-2.sql : |
+    INSERT INTO fruits values ('BANANA','This is a banana');
+    INSERT INTO fruits values ('APPLE','This is an apple');
+---
+###Persistent storage
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv-volume
+  labels:
+    type: local
+    app: postgres
+spec:
+  storageClassName: manual
+  persistentVolumeReclaimPolicy: Recycle
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data"
+---
+### Volume Claim
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim
+  namespace: my-test
+  labels:
+    app: postgres
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+---
+###Postgresql deployment
+#postgres-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: my-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+            - mountPath: /docker-entrypoint-initdb.d
+              name: ddl-scripts
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+        - name: ddl-scripts
+          configMap:
+            name: postgresql-initdb-config
+---
+###Postgresql Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: my-test
+  labels:
+    app: postgres
+spec:
+  type: NodePort
+  ports:
+   - port: 5432
+     targetPort: 5432
+  selector:
+   app: postgres 

@@ -1,0 +1,1 @@
+{{namespace}}=james-test

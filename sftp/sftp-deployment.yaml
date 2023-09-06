@@ -34,7 +34,7 @@ spec:
         app: sftp
     spec:
       imagePullSecrets:
-      - name: {{registry-name}}
+      - name: {{image-secret-name}}
       volumes:
         - name: ssh-keys-vol
           secret:

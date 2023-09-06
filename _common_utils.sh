@@ -2,6 +2,11 @@
 
 export SUBSTITUTIONS=()
 
+# shopt -s expand_aliases
+# if [[ -f ~/.bash_aliases ]]; then
+#     source ~/.bash_aliases
+# fi
+
 
 CURDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 export TEMPDIR="${CURDIR}/.tmp"
@@ -9,6 +14,8 @@ if [[ -d ${TEMPDIR} ]]; then
   rm -rf ${TEMPDIR}
 fi
 mkdir -p ${TEMPDIR}
+
+################ALL CALLLING CODE AT THE BOTTOM AFTER THE FUNCTIONS
 
 # Iterate through the array to find the value of the key
 function getKey() {
@@ -46,13 +53,21 @@ function addSubstitution() {
     fi
 }
 
-while IFS='=' read -r key value; do
-  addSubstitution ${key} ${value}
-done < ${CURDIR}/defaults.txt
+function readSubstitutionFile() {
+    local fileToRead="${1}"
+    if [[ -f ${fileToRead} ]]; then
+        echo "Adding environment configs from [${fileToRead}]"
+        while IFS=':' read -r key value; do
+            addSubstitution ${key} ${value}
+        done < ${fileToRead}
+    else
+        echo "Skipped reading substitution file [${fileToRead}] as it does not exist"
+    fi
+}
 
 
 function runCommand() {
-    local cmd=$@
+    local cmd="$@"
     echo "Running [${cmd}]"
     ${cmd}
     RC=$?
@@ -73,7 +88,7 @@ function replaceVars() {
         local key="${i%%=*}"   # Extract the part before the colon
         local value="${i#*=}"  # Extract the part after the colon
         echo "substituting [${key}] with [${value}]"
-        sed -i -r "s/${key}/${value}/g" ${tempfile}
+        sed -i -e "s/${key}/${value}/g" ${tempfile}
     done
 
     eval "${destFile}=${tempfile}"
@@ -94,3 +109,15 @@ function doApply() {
 function doRemove() {
     runFile "delete" $@
 }
+
+
+if ! command -v kubectl > /dev/null 2>&1; then
+    echo "There is no kubectl command available. If it is an alias to minikube etc you need to create it in your ~/bin/ directory"
+    echo "eg echo "minikube kubectl -- $@" > ~/bin/kubectl && chmod +x ~/bin/kubectl"
+    exit 99
+fi
+
+
+readSubstitutionFile ${CURDIR}/defaults.txt
+readSubstitutionFile ${CURDIR}/.envconfig
+

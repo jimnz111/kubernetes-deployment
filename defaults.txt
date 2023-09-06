@@ -1,1 +1,2 @@
-{{namespace}}=james-test
+{{namespace}}:james-test
+{{registry-name}}:p1cc-registry

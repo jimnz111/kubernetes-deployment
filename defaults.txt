@@ -1,2 +1,4 @@
-{{namespace}}:james-test
-{{registry-name}}:p1cc-registry
+{{namespace}}:
+{{registry-name}}:
+{{image-secret-name}}:registry-secret
+{{region}}:dev

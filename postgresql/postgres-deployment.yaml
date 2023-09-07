@@ -14,9 +14,11 @@ spec:
       labels:
         app: postgres
     spec:
+      imagePullSecrets:
+      - name: {{image-secret-name}}
       containers:
         - name: postgres
-          image: postgres:15.4
+          image: "{{registry-name}}postgres:15.4"
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
@@ -28,6 +30,10 @@ spec:
               name: postgredb
             - mountPath: /docker-entrypoint-initdb.d
               name: ddl-scripts
+          resources:
+            limits:
+              memory: "2048Mi"
+              cpu: "500m"
       volumes:
         - name: postgredb
           persistentVolumeClaim:

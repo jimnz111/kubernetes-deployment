@@ -39,15 +39,15 @@ function addSubstitution() {
     for ((i = 0; i < ${#SUBSTITUTIONS[@]}; i++)); do
         local key_value="${SUBSTITUTIONS[$i]}"
         local key="${key_value%%=*}"   # Extract the part before the colon
-        local value="${key_value#*=}"      # Extract the part after the colon
+        local value="${key_value#*=}"  # Extract the part after the colon
         if [[ "$key" == "${1}" ]]; then
-            echo "Replacing value [${value}] with [${2}]"
-            SUBSTITUTIONS[$i]="$key=${2}"
+            echo "  - Replacing value [${value}] with [${2}]"
+            SUBSTITUTIONS[$i]="${key}=${2}"
             found="Y"
-            break
+        else
+            found=
         fi
     done
-
     if [[ -z ${found} ]]; then 
         SUBSTITUTIONS+=("${1}=${2}")
     fi

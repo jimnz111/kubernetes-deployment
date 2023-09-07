@@ -11,7 +11,7 @@ metadata:
   labels:
      app: sftp
 data:
-  USER: sftp
+  USER: sftpuser
   region: dev
   path_to_private_key_file: .ssh/ssh_host_ed25519_key
   private_key_passphrase: test
@@ -33,25 +33,29 @@ spec:
       labels:
         app: sftp
     spec:
-      imagePullSecrets:
-      - name: {{image-secret-name}}
       volumes:
         - name: ssh-keys-vol
           secret:
             secretName: sftp-ssh-secrets
             defaultMode: 0600 
+      imagePullSecrets:
+      - name: {{image-secret-name}}
       containers:
         - name: sftp-container
           image: "{{registry-name}}atmoz/sftp:latest"
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 22
+          args: ["sftpuser::1000"]
           envFrom:
             - configMapRef:
                 name: sftp-config
           volumeMounts:
               - name: ssh-keys-vol
                 readOnly: true
-                mountPath: "/home/sftp/.ssh"
-          
+                mountPath: "/home/sftpuser/.ssh/keys"
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
           

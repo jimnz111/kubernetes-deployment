@@ -11,5 +11,7 @@ runCommand "kubectl create configmap ddl-scripts \
     --namespace $(getKey "{{namespace}}") \
     --from-file=init-scripts/create-1.sql \
     --from-file=init-scripts/data-2.sql"
+
+doApply "${SCRIPT_DIR}/../secret.registry.yaml"
 doApply "${SCRIPT_DIR}/postgres-deployment.yaml"
 doApply "${SCRIPT_DIR}/postgres-service.yaml"

@@ -2,3 +2,4 @@
 {{registry-name}}:
 {{image-secret-name}}:registry-secret
 {{region}}:dev
+{{sftp-namespace}}:{{namespace}}

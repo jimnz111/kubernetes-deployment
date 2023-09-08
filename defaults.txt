@@ -1,5 +1,5 @@
+{{sftp-namespace}}:{{namespace}}
 {{namespace}}:
 {{registry-name}}:
 {{image-secret-name}}:registry-secret
 {{region}}:dev
-{{sftp-namespace}}:{{namespace}}

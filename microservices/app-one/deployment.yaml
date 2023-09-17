@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  backend1
+  namespace: "{{namespace}}"
+  labels:
+    app:  backend1
+spec:
+  selector:
+    matchLabels:
+      app: backend1
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  backend1
+    spec:
+      imagePullSecrets:
+      - name: {{image-secret-name}}
+      containers:
+      - name: domain-one-microservice
+        image: jimnz111/backend1:1.0
+        imagePullPolicy: "IfNotPresent"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 300Mi
+ #       livenessProbe:
+ #         tcpSocket:
+ #           port: 80
+ #         initialDelaySeconds: 5
+ #         timeoutSeconds: 5
+ #         successThreshold: 1
+ #         failureThreshold: 3
+ #         periodSeconds: 10
+ #       readinessProbe:
+ #         httpGet:
+ #           path: /
+ #           port: 8080
+ #         initialDelaySeconds: 7
+ #         timeoutSeconds: 2
+ #         successThreshold: 1
+ #         failureThreshold: 3
+ #         periodSeconds: 10
+        ports:
+          - containerPort:  80
+# Example of a single env value using a ref
+#        env:
+#        - name: DB_HOST
+#          valueFrom:
+#            configMapKeyRef:
+#              name: app-one-override-config
+#              key: DB_HOST
+# This is a full ref to configmap to allow volume mounting
+        envFrom:
+          - configMapRef:
+              name: app-one-override-config
+        volumeMounts:
+# Use mountPath to mount the file name
+          - mountPath: /config/application-dev.properties
+            name: app-one-config-vol
+            subPath: application.properties
+            readOnly: true          
+      volumes:
+        - name: app-one-config-vol
+          configMap:
+            name: app-one-config
+#          hostPath:
+#            path: /usr/share/zoneinfo/Asia/Shanghai
+      restartPolicy: Always

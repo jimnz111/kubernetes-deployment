@@ -1,0 +1,31 @@
+# We also load a config from file under name app-one-config
+
+# This config is inline environment variables
+# I dont need it all cause I use an override properties
+# but the password is from env
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-one-override-config
+  namespace: "{{namespace}}"
+  labels:
+    app: app-one-override-config
+data:
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  POSTGRES_PASSWORD: test123
+  POSTGRES_DB: postgresdb
+  SPRING_PROFILES_ACTIVE: dev
+---
+# This one is made to be an application.properties that it mounted
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: backend1-properties
+  namespace: {{namespace}}
+  labels:
+    app: backend1-properties
+data:
+  application.properties: |
+    enemy.types=aliens,monsters
+    player.maximum-lives=5 

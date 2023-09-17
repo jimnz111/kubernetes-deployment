@@ -102,10 +102,12 @@ function runFile() {
     runCommand "kubectl ${kubeCommand} -f ${newFile}"
 }
 
+# Used to do a kubectl apply command
 function doApply() {
     runFile "apply" $@
 }
 
+# Used to do a kubectl delete command
 function doRemove() {
     runFile "delete" $@
 }
